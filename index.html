@@ -281,6 +281,9 @@ body.titled .hud,body.titled .ledger,body.titled #lcol,body.titled .build,body.t
 .fst{flex:1 0 54px;display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center;opacity:.55}.fst.has{opacity:1}.fst b{font-size:15px;color:var(--frost);line-height:1.1}.fst span{font-size:11px;line-height:1.2;color:var(--parch)}.fst small{font-size:10.5px;color:var(--muted);line-height:1.2}
 .fcyc .arr{align-self:center;font-style:normal;color:var(--muted);font-size:16px}.facts{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.facts .btn{font-size:12.5px;padding:5px 10px}
 #gl.plotting{cursor:crosshair}
+.festb.must{border-color:var(--ember);box-shadow:0 0 0 1px var(--ember),0 10px 40px rgba(0,0,0,.5)}.fbh .fpause{flex:none;font-size:12px;color:#1b1209;background:var(--ember);border-radius:4px;padding:4px 8px;font-weight:600}
+.fconf{display:flex;align-items:center;gap:12px;justify-content:space-between}.fconf .btn{flex:none}.fconf .btn:disabled{opacity:.5;cursor:not-allowed}
+.seg button.locked{opacity:.4;cursor:not-allowed}
 .fbn{font-size:11.5px;color:var(--muted)}
 @media (max-width:820px){.cards{top:auto;left:var(--gl);right:var(--gr);bottom:calc(env(safe-area-inset-bottom,0px) + 150px);max-height:55%}.fbo{grid-template-columns:repeat(2,1fr)}.fbo button small{display:none}}
 .gqb button{padding:4px 4px!important;font-size:12px!important;text-align:center!important}
@@ -1163,10 +1166,10 @@ function holdFest(f,want){let sc=want||'sederhana';const ord=['megah','meriah','
   log(`${pre}${f.n} dirayakan secara ${FSC[sc].n.toLowerCase()}. ${f.desc}${extra.length?' Hasilnya: '+extra.join(', ')+'.':''}`,'good')}
 function festDay(){
   if(S.festNow&&S.festNow.day<S.day)S.festNow=null;
-  if(S.festNext&&S.festNext.day<=S.day){const f=festById(S.festNext.id);if(f&&festElig(f))holdFest(f,S.festNext.pick);S.festNext=null}
+  if(S.festNext&&S.festNext.day<=S.day){const f=festById(S.festNext.id);if(f&&festElig(f))holdFest(f,S.festNext.pick||'sederhana');S.festNext=null}
   if(!S.festNext){S.festSeen=S.festSeen||{};for(const k in S.festSeen)if(S.festSeen[k]<S.day-5)delete S.festSeen[k];
     const y=Math.floor(S.day/DPY),L=[];for(const yy of [y,y+1])for(const f of FEST){const d=festDate(f,yy);if(d>S.day&&d-S.day<=3&&festElig(f)&&!S.festSeen[f.id+'@'+d])L.push({f,d})}
-    L.sort((a,b)=>a.d-b.d);const u=L[0];if(u){S.festSeen[u.f.id+'@'+u.d]=u.d;S.festNext={id:u.f.id,day:u.d,pick:'sederhana'};U.festOpen=true;
+    L.sort((a,b)=>a.d-b.d);const u=L[0];if(u){S.festSeen[u.f.id+'@'+u.d]=u.d;S.festNext={id:u.f.id,day:u.d,pick:null,locked:false};U.festOpen=true;U.festSel=null;festPause();
       log(`${u.f.n} ${u.f.race?'warga '+RACE[u.f.race].n+' ':''}tinggal ${u.d-S.day} hari lagi. Tentukan seberapa meriah perayaannya.`,'event');toast(`${u.f.n} dalam ${u.d-S.day} hari`)}}}
 function festNextList(){const y=Math.floor(S.day/DPY),L=[];for(const yy of [y,y+1])for(const f of FEST){const d=festDate(f,yy);if(d>=S.day)L.push({f,d})}return L.sort((a,b)=>a.d-b.d).filter((x,i,a)=>a.findIndex(z=>z.f.id===x.f.id)===i)}
 function festCal(){const L=festNextList();
@@ -2130,7 +2133,7 @@ function decide_evt(i){const E=S.dec&&EVTS[S.dec.id];if(!E)return;const D=S.dec.
   if(o.need&&!o.need())return;if(o.cost&&!canPay(o.cost)){toast('Bahan tidak cukup',true);return}
   for(const k in o.cost||{})S.res[k]-=o.cost[k];const txt=o.fx();log(`${E.t(D)}: ${o.l}. ${txt}`,'event');S.dec=null;save();renderDec();renderFest();refresh(true)}
 function renderDec(){const el=$('#decb');if(!el)return;const E=S.dec&&EVTS[S.dec.id];if(!E){el.hidden=true;return}const D=S.dec.data||{},left=S.dec.exp-S.day;
-  if(U.decOpen===false){el.hidden=false;el.className='festb pill panel';el.innerHTML=`<button data-a="decopen"><span class="fdot" style="background:#e8b04a"></span>Keputusan: ${E.t(D)} · ${left<=1?'hari terakhir':left+' hari lagi'} <u>putuskan</u></button>`;return}
+  if(U.decOpen===false||festLock()){el.hidden=false;el.className='festb pill panel';el.innerHTML=`<button data-a="decopen"><span class="fdot" style="background:#e8b04a"></span>Keputusan: ${E.t(D)} · ${left<=1?'hari terakhir':left+' hari lagi'} <u>putuskan</u></button>`;return}
   el.hidden=false;el.className='festb panel';const O=E.opts(D);
   el.innerHTML=`<div class="fbh"><span class="fdot" style="background:#e8b04a"></span><div><b>${E.t(D)}</b><span>Keputusan ${POS.jarl.n} · ${left<=1?'hari terakhir':'sisa '+left+' hari'} · bila tidak dipilih: ${O[E.def].l}</span></div><button class="fbx" data-a="decclose" aria-label="Tutup kartu keputusan" title="Tutup (Esc)">Tutup ✕</button></div>
     <p>${E.body(D)}</p><div class="fbo" style="grid-template-columns:repeat(${O.length},1fr)">${O.map((o,i)=>{const nOk=!o.need||o.need(),cOk=!o.cost||canPay(o.cost),cs=Object.keys(o.cost||{}).map(r=>`<i class="${S.res[r]>=o.cost[r]?'':'no'}">${o.cost[r]} ${RES[r].toLowerCase()}</i>`).join(' · ');
@@ -2405,7 +2408,7 @@ function bindInput(){
     if(e.key==='Escape'&&U.plotMode){endPlotMode();refresh();return}
     if(e.key==='Escape'&&U.follow!=null){stopFollow();refresh();return}
     if(e.key==='Escape'&&!U.build&&S.dec&&U.decOpen!==false){U.decOpen=false;renderDec();return}
-    if(e.key==='Escape'&&!U.build&&S.festNext&&U.festOpen!==false){U.festOpen=false;renderFest();return}
+
     if(e.key==='Escape'&&U.build){U.build=null;U.rd=null;setGhost(null);previewRoad();refresh()}});
   addEventListener('resize',resize);
 }
@@ -2446,20 +2449,23 @@ function clickAt(e){
 /* ====================== UI ====================== */
 function openBook(){U.book=true;$('#ledger').classList.remove('shut');setMin(false)}
 function setMin(v){U.min=v;$('#ledger').classList.toggle('min',v);const b=$('#ledger .mn');if(b){b.textContent=v?'▴':'▾';b.title=b.ariaLabel=v?'Buka panel':'Perkecil panel'}}
+const festLock=()=>!!(S&&S.festNext&&!S.festNext.locked&&festById(S.festNext.id));
+function festPause(){if(!festLock())return;if(U.speed>0)U.festResume=U.speed;U.speed=0;U.festOpen=true;U.festSel=U.festSel||null}
 function renderFest(){const el=$('#festb');if(!el)return;const N=S.festNext,f=N&&festById(N.id);
-  if(f&&U.festOpen!==false&&!(S.dec&&U.decOpen!==false)){const dl=N.day-S.day;el.hidden=false;el.className='festb panel';
-    el.innerHTML=`<div class="fbh"><span class="fdot" style="background:${f.c}"></span><div><b>${f.n}</b><span>${f.race?'Festival warga '+RACE[f.race].n:'Festival seluruh hold'} · ${dl<=0?'hari ini':dl+' hari lagi'} · ${dateStr(N.day).replace(/, Tahun \d+/,'')}</span></div><button class="fbx" data-a="festclose" aria-label="Tutup kartu festival" title="Tutup (Esc)">Tutup ✕</button></div>
+  if(f&&!N.locked){const dl=N.day-S.day,sel=U.festSel;el.hidden=false;el.className='festb panel must';
+    el.innerHTML=`<div class="fbh"><span class="fdot" style="background:${f.c}"></span><div><b>${f.n}</b><span>${f.race?'Festival warga '+RACE[f.race].n:'Festival seluruh hold'} · ${dl<=0?'hari ini':dl+' hari lagi'} · ${dateStr(N.day).replace(/, Tahun \d+/,'')}</span></div><span class="fpause">Permainan dijeda</span></div>
     <p>${f.desc}${f.spec?' '+f.spec:''}${f.race&&!has(f.need)?` <em>Belum ada ${BLD[f.need].n}: efek perayaan hanya setengah.</em>`:''}</p>
     <div class="fbo">${['batal','sederhana','meriah','megah'].map(k=>{const c=festCost(f,k),ok=canPay(c),cs=Object.keys(c).map(r=>`<i class="${S.res[r]>=c[r]?'':'no'}">${c[r]} ${RES[r].toLowerCase()}</i>`).join(' · ');
-      return `<button data-a="festpick" data-v="${k}" class="${N.pick===k?'on':''}${ok?'':' short'}" aria-pressed="${N.pick===k}"><b>${FSC[k].n}</b><span>${cs||'Tanpa biaya'}</span><small>${festEffText(f,k)}</small></button>`}).join('')}</div>
-    <div class="fbn">Pilihan bisa diubah sampai hari festival. Bila bahan kurang saat hari H, perayaan turun ke tingkat yang terbayar.</div>`;return}
-  if(f){el.hidden=false;el.className='festb pill panel';el.innerHTML=`<button data-a="festopen"><span class="fdot" style="background:${f.c}"></span>${f.n} · ${N.day-S.day<=0?'hari ini':N.day-S.day+' hari lagi'} · ${FSC[N.pick].n} <u>ubah</u></button>`;return}
+      return `<button data-a="festpick" data-v="${k}" class="${sel===k?'on':''}${ok?'':' short'}" aria-pressed="${sel===k}"><b>${FSC[k].n}</b><span>${cs||'Tanpa biaya'}</span><small>${festEffText(f,k)}</small></button>`}).join('')}</div>
+    <div class="fconf"><span class="fbn">Pilih satu tingkat perayaan. Pilihan <b>tidak bisa diubah</b> setelah ditetapkan, dan permainan tetap dijeda sampai kamu memilih. Bila bahan kurang saat hari H, perayaan turun ke tingkat yang terbayar.</span>
+    <button class="btn prim" data-a="festconfirm" ${sel?'':'disabled'}>${sel?`Tetapkan: ${FSC[sel].n}`:'Pilih dulu'}</button></div>`;return}
+  if(f){el.hidden=false;el.className='festb pill panel';el.innerHTML=`<button data-a="festopen"><span class="fdot" style="background:${f.c}"></span>${f.n} · ${N.day-S.day<=0?'hari ini':N.day-S.day+' hari lagi'} · ${FSC[N.pick||'sederhana'].n} · sudah ditetapkan</button>`;return}
   if(festToday()){const g=festById(S.festNow.id);el.hidden=false;el.className='festb pill panel';el.innerHTML=`<button data-a="festgo"><span class="fdot" style="background:${g.c}"></span>${g.n} sedang berlangsung${(S.hour??0)<15?' · warga berkumpul pukul 15:00':''} <u>lihat</u></button>`;return}
   el.hidden=true}
 function renderTop(){renderFest();renderDec();
   $('#htitle').innerHTML=`${tierName()} ${hn().replace(/</g,'&lt;')} <button class="ren" data-a="renameopen" title="Ganti nama hold" aria-label="Ganti nama hold">✎</button>`;{const T=tierCheck(),tb=document.querySelector('[data-v="tier"]');if(tb)tb.classList.toggle('ready',!!(T&&T.ready))}
   $('#date').textContent=dateLine();$('#date').title=wxTip();
-  document.querySelectorAll('[data-a="speed"]').forEach(b=>b.classList.toggle('on',+b.dataset.v===U.speed));
+  {const lk=festLock();document.querySelectorAll('[data-a="speed"]').forEach(b=>{b.classList.toggle('on',+b.dataset.v===U.speed);b.classList.toggle('locked',lk&&+b.dataset.v>0);b.title=lk&&+b.dataset.v>0?'Tetapkan dulu tingkat perayaan festival':''})}
   const r=S.rate||{},cap=housing(),sc=storeCap();let h='';
   for(const k of HUDRES){const v=r[k]||0,st=STORABLE.includes(k),full=st&&S.res[k]>=sc-.5,low=k==='makanan'&&S.res.makanan<S.cit.length*2;
     h+=`<div class="res" title="${RES[k]} di gudang: ${f0(S.res[k])}${st?` dari kapasitas ${sc}`:' (kas Balai Jarl)'}${(()=>{const w=S.blds.reduce((a,b)=>a+((b.stock||{})[k]||0),0);return w>.05?` · ${w.toFixed(1)} masih di tempat produksi, menunggu diangkut`:''})()} · ${(v>=0?'+':'−')+Math.abs(v).toFixed(1)} per hari"><span class="k">${RES[k]}</span><span class="v${low?' low':full?' full':''}">${f0(S.res[k])}${st?`<small>/${sc}</small>`:''}</span><span class="r ${v>.005?'up':v<-.005?'dn':''}">${full&&v>0?'penuh':(v>=0?'+':'−')+Math.abs(v).toFixed(1)}</span></div>`}
@@ -2770,7 +2776,7 @@ function viewDoc(){return `<div class="notes"><div><h2>Rancangan permainan</h2><
 <li>Dusun: hanya manusia. Desa: kurcaci dan orc. Kota: felin. Ibu Kota Hold: elf.</li></ul>
 <h3>Festival musim</h3>
 <ul><li>Empat festival seluruh hold: Pesta Bunga Semi, Malam Matahari, Pesta Panen, Malam Api Unggun. Lima festival ras: Cahaya Bintang (Elf), Turnamen Taring (Orc), Pasar Malam Bulan (Felin), Pesta Tong Tua (Kurcaci), Upacara Leluhur (Manusia).</li>
-<li>Tiga hari sebelumnya muncul kartu pilihan: Tidak dirayakan, Sederhana, Meriah, atau Megah. Makin megah makin mahal (makanan, emas, mead, roti, kayu untuk api unggun) dan makin besar efeknya: kebahagiaan, pendatang, reputasi, hubungan antar-ras, atau suasana ras.</li>
+<li>Tiga hari sebelumnya muncul kartu pilihan yang wajib diisi: permainan otomatis dijeda dan kecepatan tidak bisa diubah sampai tingkat perayaan ditetapkan, dan pilihan tidak bisa diubah lagi. Kartu: Tidak dirayakan, Sederhana, Meriah, atau Megah. Makin megah makin mahal (makanan, emas, mead, roti, kayu untuk api unggun) dan makin besar efeknya: kebahagiaan, pendatang, reputasi, hubungan antar-ras, atau suasana ras.</li>
 <li>Efek khusus: pernikahan (Bunga), reputasi (Matahari), makanan +10% (Panen), kehangatan musim dingin (Api Unggun), emas (Pasar Malam), juara tarung (Turnamen).</li>
 <li>Lapangan Festival (unik, 25 kayu + 30 batu): tempat semua festival digelar, efek festival +25% dan produksi hari festival turun lebih sedikit. Dekorasi festival kini muat di satu petak sehingga tidak menembus bangunan lain.</li>
 <li>Pada hari festival produksi turun karena warga libur. Mulai pukul 15:00 warga berkumpul menari di sekitar api unggun dan lentera di depan balai, dan musik menjadi lebih riang.</li></ul>
@@ -2872,7 +2878,7 @@ document.addEventListener('click',e=>{
     if(act==='zoom')CAM.d=clamp(CAM.d*(+v>0?1.2:1/1.2),7,40);else if(act==='rot')CAM.yaw+=+v*Math.PI/8;else{const h=hallPos();CAM.tx=h.x;CAM.tz=h.z+1;CAM.d=21;CAM.yaw=0}
     updCam();return}
   if(act!=='newgame'&&act!=='demolish'&&act!=='dismiss')U.confirm=null;
-  if(act==='speed')U.speed=+v;
+  if(act==='speed'){if(festLock()&&+v>0){toast('Tetapkan dulu tingkat perayaan festival',true);renderFest();return}U.speed=+v}
   else if(act==='tab'){setMin(false);U.tab=v;U.sel=null;world.borders=world.paint=true;$('#panel').scrollTop=0}
   else if(act==='cit'||act==='bld'||act==='zone'){U.sel={k:act,id:+v};world.borders=world.paint=true;$('#panel').scrollTop=0;
     let p=null;if(act==='cit'){const ag=AG.get(+v);if(ag)p={x:ag.x,z:ag.z};startFollow(+v)}else if(act==='bld'){const b=bldById(+v);if(b)p=cellC(b.cx,b.cy)}else p={x:Wd.zones[+v].cx-GW/2,z:Wd.zones[+v].cy-GH/2};
@@ -2897,7 +2903,8 @@ document.addEventListener('click',e=>{
   else if(act==='decopen'){U.decOpen=true;renderDec();renderFest();return}
   else if(act==='decon'){decOn(v);return}
   else if(act==='decoff'){decOff(v);return}
-  else if(act==='festpick'){if(S.festNext){S.festNext.pick=v;save()}renderFest();return}
+  else if(act==='festpick'){if(festLock()){U.festSel=v;renderFest()}return}
+  else if(act==='festconfirm'){if(festLock()&&U.festSel){S.festNext.pick=U.festSel;S.festNext.locked=true;U.festSel=null;const f=festById(S.festNext.id);log(`${f.n} akan dirayakan secara ${FSC[S.festNext.pick].n.toLowerCase()}.`,'event');U.speed=U.festResume||1;U.festResume=null;save();refresh(true)}return}
   else if(act==='festclose'){U.festOpen=false;renderFest();return}
   else if(act==='festopen'){U.festOpen=true;if(S.dec)U.decOpen=false;renderFest();renderDec();return}
   else if(act==='festgo'){const P=festPlaza();if(P){CAM.tx=P.x;CAM.tz=P.z+.5;CAM.d=Math.min(CAM.d,12);updCam()}return}
@@ -2962,7 +2969,7 @@ function renderTitle(){const el=$('#title');if(!el)return;document.body.classLis
   el.innerHTML=`<div class="tveil"></div><div class="tbox">${head}${body}<div class="tfoot">Seret untuk menggeser peta · gulir untuk zoom · Q/E memutar kamera</div></div>`;
   const fi=$('#timport');if(fi)fi.onchange=()=>{const f=fi.files&&fi.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result),st=o.S||o;if(!st||st.v!==9||st.seed==null)throw 0;loadState(st);closeTitle();toast(`${hn()} dimuat dari file`)}catch(e){toast('File tidak dikenali sebagai simpanan Vinterhald',true)}};r.readAsText(f)}}
 function openTitle(v,fromGame){if(!U.title){U.prevSpeed=U.speed;U.speed=0}U.title=v||'main';U.titleFromGame=!!fromGame;renderTitle();refresh()}
-function closeTitle(){U.title=null;U.titleFromGame=false;if(U.prevSpeed!=null){U.speed=U.prevSpeed||1;U.prevSpeed=null}renderTitle();refresh()}
+function closeTitle(){U.title=null;U.titleFromGame=false;if(U.prevSpeed!=null){U.speed=U.prevSpeed||1;U.prevSpeed=null}if(festLock()){festPause()}renderTitle();refresh()}
 function exportSave(){try{const b=new Blob([JSON.stringify({S,at:Date.now()})],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`vinterhald-${(S.name||'hold').replace(/[^\w-]+/g,'_')}-hari${S.day}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);toast('File cadangan diunduh')}catch(e){toast('Gagal membuat file cadangan',true)}}
 
 function rebuildWorld(){
@@ -2977,7 +2984,7 @@ let last=performance.now(),lastSeason=-1;
 function frame(now){
   const dt=Math.min(100,now-last);last=now;
   if(U.title&&!reduce){CAM.yaw+=dt*.00004;updCam()}
-  if(U.speed>0&&!S.jarlPick&&!U.title){U.acc+=dt*U.speed;let n=0,hd=0;while(U.acc>=HOUR_MS&&hd<30){U.acc-=HOUR_MS;hd++;S.hour=((S.hour??8)+1)%24;if(S.hour===0){simDay();n++}simHour()}if(hd>=30)U.acc=0;
+  if(U.speed>0&&!S.jarlPick&&!U.title){U.acc+=dt*U.speed;let n=0,hd=0;while(U.acc>=HOUR_MS&&hd<30&&!festLock()){U.acc-=HOUR_MS;hd++;S.hour=((S.hour??8)+1)%24;if(S.hour===0){simDay();n++}simHour()}if(hd>=30||festLock())U.acc=0;if(festLock())U.speed=0;
     if(hd&&now-(U.topT||0)>600){U.topT=now;renderTop()}
     if(hd){syncBuildings();syncFire();syncFest();renderFest();if([6,8,17,21,22].includes(S.hour))wakeAgents();if(festActive()&&S.hour>=15&&!U.festCall){U.festCall=S.day;for(const g of AG.values())if(g.state==='rest'&&g.act!=='party')g.dur=Math.random()*2}if(U.festCall&&!festActive())U.festCall=0;$('#date').textContent=dateLine();if(!n&&U.sel&&U.sel.k==='bld'&&S.hour%3===0)refresh()}
     if(n){if(season()!==lastSeason){lastSeason=season();world.seasonDirty=true}syncBuildings();syncAgents();refresh();if(U.ov&&U.ov!=='none')world.paint=true}}
@@ -3002,7 +3009,7 @@ function boot(data){
   migrate();
   initThree();makeIcons();initLabels();bindInput();resize();applyGQ();
   buildRoads();syncBuildings();syncAgents();syncFire();syncFest();renderJP();const h=hallPos();CAM.tx=h.x;CAM.tz=h.z+1;updCam();
-  lastSeason=season();if(!(data&&data.S))openTitle('main');refresh();$('#boot').remove();requestAnimationFrame(frame);
+  lastSeason=season();if(S.festNext&&S.festNext.locked==null)S.festNext.pick=null,S.festNext.locked=false;if(!(data&&data.S))openTitle('main');refresh();$('#boot').remove();requestAnimationFrame(frame);
 }
 window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??{});
 </script>
