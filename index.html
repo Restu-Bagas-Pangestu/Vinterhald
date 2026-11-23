@@ -421,7 +421,7 @@ const BLD={
   bakery:{n:'Toko Roti',cost:{kayu:30,batu:20},zones:ANY,skill:'pangan',slots:2,in:{tepung:.25},out:{roti:.3},bt:6,d:'Memanggang tepung menjadi roti. Roti mengenyangkan dan dibutuhkan rumah yang lebih tinggi.'},
   tailor:{n:'Penjahit',cost:{kayu:30},zones:ANY,skill:'tempa',slots:2,in:{kulit:.2},out:{pakaian:.16},bt:6,d:'Menjahit kulit menjadi pakaian hangat untuk musim dingin.'},
   fish:{n:'Dermaga Ikan',cost:{kayu:20},zones:['lake'],water:true,skill:'pangan',slots:2,out:{makanan:.55},winter:.65,bt:5,d:'Makanan sepanjang tahun. Di tepi danau.'},
-  lumber:{n:'Kamp Penebang',cost:{kayu:10},zones:['forest'],skill:'tebang',slots:3,out:{kayu:.5},bt:4,d:'Kayu. Hanya di wilayah hutan.'},
+  lumber:{n:'Kamp Penebang',cost:{},zones:['forest'],skill:'tebang',slots:3,out:{kayu:.5},bt:4,d:'Kayu. Hanya di wilayah hutan. Gratis dibangun (cukup tenaga warga), supaya hold tidak pernah kehabisan kayu sama sekali.'},
   mine:{n:'Tambang Bijih',cost:{kayu:25},zones:['mountain'],skill:'tambang',slots:3,out:{batu:.35,bijih:.16},bt:7,d:'Batu dan bijih besi. Hanya di pegunungan.'},
   smith:{n:'Pandai Besi',cost:{kayu:20,batu:20},zones:ANY,skill:'tempa',slots:2,in:{bijih:.22},out:{senjata:.16},bt:7,d:'Menempa bijih menjadi senjata.'},
   inn:{n:'Penginapan',cost:{kayu:50,batu:20},zones:ANY,skill:'dagang',slots:2,out:{},rooms:6,bt:8,d:'Penginapan dan kedai untuk para petualang. Menghibur warga dan mendatangkan emas dari tamu, tapi dapurnya menghabiskan makanan.'},
@@ -2476,7 +2476,7 @@ function renderPalette(){
   const has_=t=>cat[2].includes(t);let h=!has_('road')?'':`<button class="bb${U.build==='road'?' sel':''}" data-a="build" data-v="road" title="Klik lalu seret untuk menarik jalan"><img alt="" src="${icons.road||''}"><span class="nm">Jalan</span><span class="cs">${ROAD_COST} kayu / petak</span></button>
   <button class="bb${U.build==='unroad'?' sel':''}" data-a="build" data-v="unroad" title="Klik lalu seret untuk menghapus jalan"><img alt="" src="${icons.unroad||''}"><span class="nm">Hapus jalan</span><span class="cs">gratis</span></button>`;
   for(const t of cat[2]){if(!BLD[t]||BLD[t].fixed)continue;const c=costOf(t),done=BLD[t].unique&&S.blds.some(b=>b.type===t),lk=BT[t]>htier(),ok=afford(t)&&!done&&!lk;
-    const cs=Object.keys(c).map(k=>`${c[k]} ${RES[k].toLowerCase()}`).join(' · ');
+    const cs=Object.keys(c).map(k=>`${c[k]} ${RES[k].toLowerCase()}`).join(' · ')||'Gratis';
     h+=`<button class="bb${U.build===t?' sel':''}" data-a="build" data-v="${t}" ${ok?'':'disabled'} title="${BLD[t].d}"><img alt="" src="${icons[t]||''}"><span class="nm">${BLD[t].n}</span><span class="cs">${lk?'🔒 '+HT[BT[t]].n:done?'Sudah dibangun':cs}</span></button>`}
   $('#palette').innerHTML=h;
   $('#hint').innerHTML=U.build==='road'?`<span><b>Jalan</b>: klik lalu seret. Gerobak kuda (dari Kandang Kuda, 3 per kandang) mengangkut hasil bangunan yang pintunya tersambung jalan ke pintu gudang (+20% produksi).</span><span>Seret kanan = geser kamera · Esc = selesai</span>`
