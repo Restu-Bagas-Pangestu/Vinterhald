@@ -333,7 +333,12 @@ body.titled .hud,body.titled .ledger,body.titled #lcol,body.titled .build,body.t
   .resbar .res:not(.sep):not(.goods) .r{align-self:flex-end;margin-bottom:2px}
   .resbar .res:not(.sep):not(.goods) .k{grid-column:auto}
   .res.goods{display:flex;align-items:center}
-  .crest{padding:5px 12px;flex:0 1 auto;min-width:0;max-width:30%}
+  .crest{padding:5px 12px;flex:none;width:262px;min-width:0;max-width:30%}
+  .crest .date{font-variant-numeric:tabular-nums}
+  .resbar .res .v{font-variant-numeric:tabular-nums;min-width:6.4ch}
+  .resbar .res .v:not(:has(small)){min-width:2.6ch}
+  .resbar .res .r{font-variant-numeric:tabular-nums;min-width:4ch}
+  .lleg b,.lk b,.res.goods .g b{font-variant-numeric:tabular-nums;display:inline-block;min-width:2.2ch}
   .crest h1{overflow:hidden;text-overflow:ellipsis}
   .crest h1{font-size:19px;white-space:nowrap}
   .crest .date{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
